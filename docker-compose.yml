@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   erpnext-backend:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-backend
     restart: unless-stopped
     volumes:
@@ -12,7 +12,7 @@ services:
       - erpnext-network
 
   erpnext-configurator:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-configurator
     restart: "no"
     entrypoint:
@@ -48,7 +48,7 @@ services:
       - erpnext-network
 
   erpnext-create-site:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-create-site
     restart: "no"
     volumes:
@@ -75,7 +75,10 @@ services:
           fi
         done;
         echo "sites/common_site_config.json found";
-        bench new-site --mariadb-user-host-login-scope='%' --admin-password=admin --db-root-username=root --db-root-password=erpnext_db_root_2024 --install-app erpnext --set-default frontend;
+        bench new-site --mariadb-user-host-login-scope='%' --admin-password=${ERPNEXT_ADMIN_PASSWORD} --db-root-username=root --db-root-password=${DB_ROOT_PASSWORD} --install-app erpnext --set-default frontend;
+    environment:
+      ERPNEXT_ADMIN_PASSWORD: ${ERPNEXT_ADMIN_PASSWORD}
+      DB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     depends_on:
       erpnext-configurator:
         condition: service_completed_successfully
@@ -83,7 +86,7 @@ services:
       - erpnext-network
 
   erpnext-frontend:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-frontend
     restart: unless-stopped
     command:
@@ -111,7 +114,7 @@ services:
       - erpnext-network
 
   erpnext-websocket:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-websocket
     restart: unless-stopped
     command:
@@ -127,7 +130,7 @@ services:
       - erpnext-network
 
   erpnext-queue-short:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-queue-short
     restart: unless-stopped
     command:
@@ -145,7 +148,7 @@ services:
       - erpnext-network
 
   erpnext-queue-long:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-queue-long
     restart: unless-stopped
     command:
@@ -163,7 +166,7 @@ services:
       - erpnext-network
 
   erpnext-scheduler:
-    image: frappe/erpnext:v15
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
     container_name: erpnext-scheduler
     restart: unless-stopped
     command:
@@ -188,14 +191,14 @@ services:
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed
     environment:
-      MYSQL_ROOT_PASSWORD: erpnext_db_root_2024
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: erpnext
       MYSQL_USER: erpnext
-      MYSQL_PASSWORD: erpnext_user_2024
+      MYSQL_PASSWORD: ${DB_USER_PASSWORD}
     volumes:
       - erpnext-db-data:/var/lib/mysql
     healthcheck:
-      test: mysqladmin ping -h localhost --password=erpnext_db_root_2024
+      test: mysqladmin ping -h localhost --password=${DB_ROOT_PASSWORD}
       interval: 5s
       timeout: 10s
       retries: 10
