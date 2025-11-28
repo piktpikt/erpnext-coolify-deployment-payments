@@ -1,34 +1,97 @@
-# erpnext-coolify-deployment
-Deployment Docker Compose - Coolify - VPS
+# ERPNext Coolify Deployment
 
+Deploy ERPNext v15 on Coolify with Cloudflare Tunnel.
 
-# ERPNext Deployment with Coolify
+## Services
 
-Este repositorio contiene una configuración optimizada para desplegar [ERPNext](https://erpnext.com/) utilizando [Coolify](https://coolify.io/), una herramienta de autohospedaje para servidores. El proyecto incluye un archivo `docker-compose.yml` que configura todos los servicios necesarios para ejecutar ERPNext en un VPS.
+| Service | Description |
+|---------|-------------|
+| erpnext-frontend | Nginx reverse proxy (port 8085) |
+| erpnext-backend | Gunicorn application server |
+| erpnext-websocket | Socket.io for real-time |
+| erpnext-queue-short | Background jobs (short queue) |
+| erpnext-queue-long | Background jobs (long queue) |
+| erpnext-scheduler | Scheduled tasks |
+| erpnext-db | MariaDB 10.6 database |
+| erpnext-redis-cache | Redis for caching |
+| erpnext-redis-queue | Redis for job queues |
 
-## Características
-- Despliegue completo de ERPNext versión 14.
-- Configuración ajustada para evitar reinicios innecesarios de contenedores.
-- Uso de Coolify para gestionar el despliegue en un servidor.
-- Servicios incluidos: backend, frontend, base de datos (MariaDB), Redis, colas de trabajo, scheduler y WebSocket.
+## Deployment on Coolify
 
-## Requisitos
-- Un VPS con Docker y Docker Compose instalados.
-- Coolify configurado en el servidor.
-- Conocimientos básicos de Docker y gestión de servidores.
+1. **Add new resource** → Docker Compose → Git Repository
+2. **Repository**: `https://github.com/piktpikt/erpnext-coolify-deployment`
+3. **Branch**: `main`
+4. **Deploy**
 
-## Instalación
-1. Clona este repositorio
-2. Configura las variables de entorno en Coolify (ver archivo env "Variables de Entorno").
-3. Despliega el proyecto "Deploy"
-4. Esperar y Accede a ERPNext en http://<tu-ip>:8081.
-5. Nota: Cambie las contraseñas por valores seguros antes de usar en producción.
+## First Deployment
 
+The first deployment takes **5-10 minutes** because:
+- `erpnext-configurator` sets up the bench configuration
+- `erpnext-create-site` creates the default site with ERPNext installed
 
-## Créditos
-Este proyecto se basa en ERPNext, una plataforma ERP de código abierto desarrollada por Frappe Technologies. ¡Gracias a ellos por su increíble trabajo!
-Inspirado en la documentación oficial.
+Check the logs of `erpnext-create-site` container to monitor progress.
 
-Basado en el Repositorio:: [Websoft9test](https://github.com/Websoft9test/docker-erpnext/blob/main/docker-compose.yml)
+## Default Credentials
 
+| Type | Value |
+|------|-------|
+| **URL** | https://erp.flightpawr.com |
+| **Username** | Administrator |
+| **Password** | admin |
 
+⚠️ **Change the admin password immediately after first login!**
+
+## Cloudflare Tunnel Configuration
+
+| Setting | Value |
+|---------|-------|
+| Hostname | erp.flightpawr.com |
+| Service | http://erpnext-frontend-XXXXX:8080 |
+
+Note: Replace `XXXXX` with the actual container suffix from `docker ps`.
+
+## Database Credentials
+
+| Parameter | Value |
+|-----------|-------|
+| Root Password | erpnext_db_root_2024 |
+| Database | erpnext |
+| User | erpnext |
+| User Password | erpnext_user_2024 |
+
+⚠️ **Change these passwords for production use!**
+
+## Customization
+
+### Change Admin Password
+Edit `docker-compose.yml`, find `erpnext-create-site` service and modify:
+```
+--admin-password=YOUR_SECURE_PASSWORD
+```
+
+### Change Database Passwords
+Edit `docker-compose.yml`:
+1. `erpnext-db` service: `MYSQL_ROOT_PASSWORD` and `MYSQL_PASSWORD`
+2. `erpnext-create-site` service: `--db-root-password`
+
+## Troubleshooting
+
+### Site not accessible
+```bash
+docker logs erpnext-create-site-XXXXX
+```
+
+### Database connection issues
+```bash
+docker logs erpnext-db-XXXXX
+```
+
+### Check all containers
+```bash
+docker ps --filter "name=erpnext"
+```
+
+## Based on
+
+- [Frappe Docker](https://github.com/frappe/frappe_docker)
+- [ERPNext](https://erpnext.com/)
