@@ -10,6 +10,11 @@ services:
       - erpnext-logs:/home/frappe/frappe-bench/logs
     networks:
       - erpnext-network
+    command: >
+      sh -c "
+      if [ ! -d 'apps/payments' ]; then bench get-app payments --branch version-15 --resolve-deps; fi &&
+      /home/frappe/frappe-bench/env/bin/python -m pip install -e apps/payments &&
+      /home/frappe/frappe-bench/env/bin/gunicorn -b 0.0.0.0:8000 -w 4 -t 120 frappe.app:application --preload"
 
   erpnext-configurator:
     image: frappe/erpnext:${ERPNEXT_VERSION:-v15}
