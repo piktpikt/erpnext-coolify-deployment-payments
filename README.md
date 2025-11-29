@@ -4,7 +4,7 @@ Deploy ERPNext v15 (with Frappe Framework) on Coolify with Cloudflare Tunnel and
 
 ## 🚀 Features
 
-- **ERPNext v15** - Full-featured open-source ERP
+- **ERPNext v15** - Full-featured open-source ERP + Pqyments App
 - **Frappe Framework** - Included as the base framework
 - **Coolify Ready** - Optimized docker-compose for Coolify deployment
 - **Secure** - No hardcoded passwords, all credentials via environment variables
